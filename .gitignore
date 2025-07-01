@@ -1,0 +1,22 @@
+# Fichiers Python compilés
+__pycache__/
+*.py[cod]
+*.pyo
+
+.env
+
+# Fichiers de l’éditeur
+*.swp
+*.swo
+*.bak
+*~
+.idea/
+.vscode/
+
+# Fichiers/dossiers générés
+db.sqlite3
+*.log
+*.pot
+*.pyc
+*.mo
+*.tmp
