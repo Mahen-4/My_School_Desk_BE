@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'custom_auth',
     'grades',
     'school',
-    'works'
+    'works',
+    'rest_framework'
 
 ]
 
@@ -90,7 +91,7 @@ WSGI_APPLICATION = 'my_school_desk_BE.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
+        'NAME': 'msd_db',
         'USER': env('DB_USER'),
         'PASSWORD': env("DB_PASSWORD"),
         'HOST': env("DB_HOST"),
