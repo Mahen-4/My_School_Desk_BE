@@ -1,0 +1,63 @@
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user
+      POSTGRES_DB: msd_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - msd_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+     PGADMIN_DEFAULT_EMAIL: user@ece.fr
+     PGADMIN_DEFAULT_PASSWORD: user
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "8888:80"
+    networks:
+      - msd_network
+
+  # msd_fe:
+  #   build: ./My_School_Desk_FE
+  #   depends_on:
+  #     - postgres
+  #     - msd_be
+  #   volumes:
+  #     - ./My_School_Desk_FE:/app #dev
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - msd_network
+  #   command: npm run dev
+    
+  msd_be:
+    build: ./
+    depends_on:
+      - postgres
+    env_file:
+        - ./.env
+    volumes:
+      - ./:/app #dev
+    ports:
+      - "8000:8000"
+    networks:
+      - msd_network
+
+    command: python manage.py runserver 0.0.0.0:8000
+
+
+volumes:
+  pgdata:
+  pgadmin-data:
+
+networks:
+  msd_network:
+    driver: bridge

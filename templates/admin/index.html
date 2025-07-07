@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  {{ block.super }}
+  <div class="dashboard-module">
+    <h2>Actions personnalisées</h2>
+    <ul>
+      <li><a href="{% url 'msd-admin-action' %}">Création de classes / étudiants / enseignant via fichier excel </a></li>
+    </ul>
+  </div>
+{% endblock %}
