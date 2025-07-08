@@ -66,7 +66,7 @@ def admin_action_view(request):
                         student1.save() #save to db
 
                     #sending email
-                    message = f"""Bonjour {row['first_name'], row['last_name']},
+                    message = f"""Bonjour {row['first_name']} {row['last_name']},
 
                                 Bienvenue sur notre plateforme !
 
@@ -103,7 +103,7 @@ def admin_action_view(request):
                         teacher1.save() #save to db
 
                     #sending email
-                    message = f"""Bonjour {row['first_name'], row['last_name']},
+                    message = f"""Bonjour {row['first_name']} {row['last_name']},
 
                                 Bienvenue sur notre plateforme !
 
@@ -117,7 +117,7 @@ def admin_action_view(request):
                     send_mail( subject, message, email_from, [row['email']] )
 
             messages.success(request, "Importation réussie !")
-            return redirect(reverse('admin:msd_admin_action.html'))
+            return redirect(reverse('admin:school_students_changelist'))
     else:
         form = ExcelUploadForm()        
 

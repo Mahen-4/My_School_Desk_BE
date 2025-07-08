@@ -41,4 +41,4 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # string return of a member object
     def __str__(self):
-        return str(self.email)
+        return f'{self.email} - {self.last_name.upper()} {self.first_name} - is student :  {self.is_student} - is teacher : {self.is_teacher} - is staff : {self.is_staff}'

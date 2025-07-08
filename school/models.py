@@ -8,6 +8,10 @@ from collections import defaultdict
 class Classes(models.Model):
     name = models.CharField(max_length=50)
         
+    def __str__(self): #description methode
+        return self.name
+
+
     def get_class_homeworks(self): # function for students
 
         all_homeworks = {} #create dict
@@ -56,6 +60,9 @@ class Students(models.Model):
     id_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_profile" )
     id_class = models.ForeignKey(Classes, on_delete=models.SET_NULL, null=True, blank=True, related_name="class_students")
 
+    def __str__(self): #description methode
+        return f'{self.id_user.last_name.upper()} {self.id_user.first_name} - {self.id_class.name}'
+
     def calc_average(self): # get average of the students
         list_results = [result for result in self.student_results.all() ] #get all results as a list
         self.average = sum(list_results) / len(list_results) # get average
@@ -97,10 +104,17 @@ class Students(models.Model):
 class Subjects(models.Model):
     name = models.CharField(max_length=100)
 
+    def __str__(self): #description methode
+            return self.name
+
 
 class Teachers(models.Model):
     id_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile" )
     id_subject = models.ForeignKey(Subjects, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self): #description methode
+        return f'{self.id_user.last_name.upper()} {self.id_user.first_name} - {self.id_subject.name}'
+
 
     def get_homeworks_created(self):
 
