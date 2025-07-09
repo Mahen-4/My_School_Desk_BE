@@ -12,14 +12,14 @@ class Classes(models.Model):
         return self.name
 
 
-    def get_class_homeworks(self): # function for students
+    def get_classe_homeworks(self): # function for students
 
         all_homeworks = {} #create dict
 
         #for each homework of the class create a dict by id containing details of each homework
-        for homework in self.class_homeworks.all():
+        for homework in self.classe_homeworks.all():
             all_homeworks[homework.id] = {
-                "subject": homework.id_teacher.id_subject.name,
+                "subject": homework.teacher.subject.name,
                 "description" : homework.description,
                 "due_date" : homework.due_date
             }
@@ -27,41 +27,41 @@ class Classes(models.Model):
         return all_homeworks
 
 
-    def get_class_last_homeworks(self): # function for students
+    def get_classe_last_homeworks(self): # function for students
 
         last_homeworks = {} #create dict
 
-        last5_homeworks = [homework for homework in self.class_homeworks.all()][-5:] # get last 5 homeworks
+        last5_homeworks = [homework for homework in self.classe_homeworks.all()][-5:] # get last 5 homeworks
 
         #for each last 5 homework of the class create a dict by subject containing details of each homework
         for homework in last5_homeworks:
-            last_homeworks[homework.id_teacher.id_subject.name] = {
+            last_homeworks[homework.teacher.subject.name] = {
                 "description" : homework.description,
                 "due_date" : homework.due_date
             }
 
         return last_homeworks
 
-    def get_class_quiz(self):
+    def get_classe_quiz(self):
 
         all_quiz = {}
 
         #for each question get the question :responses dict and add to array 
-        for assign_quiz in self.class_quiz.all():
-            all_quiz[assign_quiz.id_quiz] = {
-                "quiz_title" : assign_quiz.id_quiz.title,
-                "quiz_subject": assign_quiz.id_quiz.id_teacher.id_subject.name
+        for assign_quiz in self.classe_quiz.all():
+            all_quiz[assign_quiz.quiz] = {
+                "quiz_title" : assign_quiz.quiz.title,
+                "quiz_subject": assign_quiz.quiz.teacher.subject.name
             }
 
         return all_quiz
 
 class Students(models.Model):
     average = models.FloatField(null=True, blank=True, default=None, validators=[MinValueValidator(0)])
-    id_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_profile" )
-    id_class = models.ForeignKey(Classes, on_delete=models.SET_NULL, null=True, blank=True, related_name="class_students")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student" )
+    classe = models.ForeignKey(Classes, on_delete=models.SET_NULL, null=True, blank=True, related_name="classe_students")
 
     def __str__(self): #description methode
-        return f'{self.id_user.last_name.upper()} {self.id_user.first_name} - {self.id_class.name}'
+        return f'{self.user.last_name.upper()} {self.user.first_name} - {self.classe.name}'
 
     def calc_average(self): # get average of the students
         list_results = [result for result in self.student_results.all() ] #get all results as a list
@@ -75,7 +75,7 @@ class Students(models.Model):
 
         #for each result of the student create a dict by subject containing details of each exam
         for result in self.student_results.all():
-            result_by_subject[result.id_teacher.id_subject.name].append({
+            result_by_subject[result.teacher.subject.name].append({
                 "title": result.title,
                 "score" : result.score,
                 "result_on" : result.score_on,
@@ -92,7 +92,7 @@ class Students(models.Model):
         #for each result of the 5 latest create a dict containing details of each exam
         for result in last5_result:
             last_results[result.title] = {
-                "subject": result.id_teacher.id_subject.name,
+                "subject": result.teacher.subject.name,
                 "score" : result.score,
                 "result_on" : result.score_on,
                 "result_added_date": result.added_date
@@ -109,11 +109,11 @@ class Subjects(models.Model):
 
 
 class Teachers(models.Model):
-    id_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile" )
-    id_subject = models.ForeignKey(Subjects, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher" )
+    subject = models.ForeignKey(Subjects, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self): #description methode
-        return f'{self.id_user.last_name.upper()} {self.id_user.first_name} - {self.id_subject.name}'
+        return f'{self.user.last_name.upper()} {self.user.first_name} - {self.subject.name}'
 
 
     def get_homeworks_created(self):
@@ -126,7 +126,7 @@ class Teachers(models.Model):
                 "homework_description" : homework.description,
                 "homework_created_at" : homework.created_at,
                 "homework_due_date" : homework.due_date,
-                "class_name": homework.id_class.name
+                "classe_name": homework.classe.name
             }
 
         return all_homeworks
@@ -142,7 +142,7 @@ class Teachers(models.Model):
                 "homework_description" : homework.description,
                 "homework_created_at" : homework.created_at,
                 "homework_due_date" : homework.due_date,
-                "class_name": homework.id_class.name
+                "classe_name": homework.classe.name
             }
 
         return last_homeworks
@@ -154,9 +154,9 @@ class Teachers(models.Model):
 
         #for each result of the teacher create a dict containing details of each student rate by exam title and classe
         for result in self.teacher_results.all():
-            results_created[result.title][result.id_class.name].append({
-                "student_first_name" : result.id_student.id_user.first_name,
-                "student_last_name" : result.id_student.id_user.last_name,
+            results_created[result.title][result.classe.name].append({
+                "student_first_name" : result.student.user.first_name,
+                "student_last_name" : result.student.user.last_name,
                 "student_score" : result.score,
                 "result_on" : result.score_on,
                 "result_id" : result.id

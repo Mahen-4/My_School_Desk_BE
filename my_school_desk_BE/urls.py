@@ -22,5 +22,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('creation-admin-action/', admin_action_view, name='msd-admin-action'),
     path('test-admin-action/', admin_action_view),
-    path('auth/', include(("custom_auth.urls", "custom_auth"), "custom_auth"))
+    path('auth/', include(("custom_auth.urls", "custom_auth"), "custom_auth")),
+    path('',include(("school.urls", "school"), "school")),
+    path('',include(("works.urls", "works"), "works")),
+    
 ]

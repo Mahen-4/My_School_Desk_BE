@@ -6,8 +6,8 @@ from collections import defaultdict
 class Quiz(models.Model):
     title = models.CharField(max_length=150)
     description = models.TextField(max_length=250)
-    added_date = models.DateField()
-    id_teacher = models.ForeignKey(Teachers, on_delete=models.CASCADE, related_name="teacher_quiz")
+    added_date = models.DateTimeField(auto_now_add=True)
+    teacher = models.ForeignKey(Teachers, on_delete=models.CASCADE, related_name="teacher_quiz")
     classes = models.ManyToManyField(Classes, through="Assigned_quiz")
     students = models.ManyToManyField(Students, through='Attempts')
 
@@ -22,18 +22,18 @@ class Quiz(models.Model):
         return all_questions_responses
 
 class Attempts(models.Model):
-    id_student = models.ForeignKey(Students, on_delete=models.CASCADE)
-    id_quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    student = models.ForeignKey(Students, on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
     score = models.FloatField(validators=[MinValueValidator(0)])
-    date_attempted = models.DateField()
+    date_attempted = models.DateTimeField(auto_now_add=True)
     
 class Assigned_quiz(models.Model):
-    id_class = models.ForeignKey(Classes, on_delete=models.CASCADE, related_name='class_quiz') 
-    id_quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    classe = models.ForeignKey(Classes, on_delete=models.CASCADE, related_name='classe_quiz') 
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
 
 class Questions(models.Model):
     title = models.TextField(max_length=250)
-    id_quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="quiz_questions")
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="quiz_questions")
 
     def get_responses(self):
         all_responses = defaultdict(list) #init dict
@@ -50,7 +50,7 @@ class Questions(models.Model):
 class Responses(models.Model):
     title = models.TextField(max_length=250)
     is_answer = models.BooleanField()
-    id_question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name="question_responses")
+    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name="question_responses")
 
 
 

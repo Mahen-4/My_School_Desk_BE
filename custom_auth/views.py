@@ -9,10 +9,13 @@ import datetime
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
 import environ
-from custom_auth.models import User
-from school.models import Students, Teachers
+from custom_auth.models import User, Password_reset_token
+from school.models import Students, Teachers, Classes, Subjects
 from django.forms.models import model_to_dict
-
+import uuid
+from .serializers import UserSerializer
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
 
 #load env variables
 env = environ.Env()
@@ -24,14 +27,12 @@ def get_csrf(request):
     # set cookie csrf in navigateur
     return JsonResponse({"detail": "CSRF cookie set"})
 
+@api_view(['POST'])    
 @csrf_protect
 def logIn(request):
-    #check if request POST
-    if request.method != "POST":
-        return JsonResponse({"error": f"Méthode erreur"}, status=405)
 
     try:
-        data = json.loads(request.body) #get data from front
+        data = request.data #get data from front
         email = data.get("email")
         password = data.get("password")
 
@@ -66,13 +67,10 @@ def logIn(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
     
-
+@api_view(['POST'])    
 @csrf_protect
 def digi_code_check(request):
 
-    #check if request POST
-    if request.method != "POST":
-        return JsonResponse({"error": f"Méthode erreur"}, status=405)
     
    #check if code expired
     if request.session.get('user_email'):
@@ -93,12 +91,11 @@ def digi_code_check(request):
         
         else: 
             #check if digi code match
-            data = json.loads(request.body) #get data from front
+            data = request.data #get data from front
             if check_password(data.get('digi_code'), request.session.get(f"digi_code{user_email}")):
                 
                 try:
                     user1 = User.objects.get(email=user_email) #find user
-
                     login(request, user1) #login
 
                     #delete session new  data
@@ -106,14 +103,17 @@ def digi_code_check(request):
                     request.session.pop(f"digi_code{user_email}", None)
                     request.session.pop(f"digi_code_expire{user_email}", None)
                     
-
-                    user_data = model_to_dict(user1)
-                    user_data.pop('password', None) #delete password before sending to front
+                    
+                    serializer = UserSerializer(user1) #transform user1 to dict
+                    data = serializer.data
                     #if user is student send also student id if user is teacher send teacher id 
-                    if user1.is_student == True :  user_data["id_student"] = Students.objects.get(id_user=user1.id).id                   
-                    if user1.is_teacher == True :  user_data["id_teacher"] = Teachers.objects.get(id_user=user1.id).id
+                    if user1.is_student :  
+                        data['classe'] = Students.objects.get(user=user1.id).classe.name
 
-                    return JsonResponse(user_data, status=200)
+                    if user1.is_teacher : 
+                        data['subject'] = Teachers.objects.get(user=user1.id).subject.name
+                        
+                    return Response(data, status=200)
 
                 except:
                     return JsonResponse({'error': "Erreur de connexion"}, status=500)
@@ -123,3 +123,96 @@ def digi_code_check(request):
 
     else:
         return JsonResponse({"error": "Non autorisé"}, status=401)
+    
+@api_view(['POST'])    
+@csrf_protect
+def reset_password(request):
+    
+    data = request.data #get data from front
+    user_email = data.get('email')
+
+    #if user email exist get user
+    if User.objects.filter(email=user_email).exists() :
+                
+        user1 = User.objects.get(email=user_email)
+
+        #if a token for this user already exist return error 
+        if Password_reset_token.objects.filter(user=user1).exists():
+            exist_and_valid_check = Password_reset_token(user=user1)
+            if not exist_and_valid_check.is_expired():
+                return JsonResponse({'error': 'Token déjà envoyé et toujours valide ! (attendre 10 minutes pour un nouveau email)'})
+            else:
+                exist_and_valid_check.delete() #if expired delete it 
+
+        token = uuid.uuid4().hex # create uuid code
+
+        token_to_db =  Password_reset_token(user=user1, token=make_password(str(token)))
+        token_to_db.save() #add to table hash uuid token
+
+        #sending email
+        subject = 'MySchoolDesk - Lien de réinitialisation du mot de passe'
+        message = f"""Hello {user1.first_name},
+                Votre lien de réinitialisation du mot de passe est : http://localhost:8080/auth/change_mdp/{token}.
+                Ce lien expirera dans 5 minutes. Si vous n'avez pas demandé ce code, veuillez sécuriser votre compte immédiatement.
+                Nous vous en remercions,
+                
+                MySchoolDesk"""
+
+        email_from = env('EMAIL_HOST_USER')
+        send_mail( subject, message, email_from, [user_email] )
+
+        return JsonResponse({"success": "Email envoyé"}, status=200)
+
+    else:
+        return JsonResponse({'error': "Email introuvable"}, status=404)
+
+@api_view(['POST'])
+@csrf_protect
+def change_password(request):
+    
+    data = request.data #get data from front
+    user_token = data.get('token')
+
+    all_tokens = Password_reset_token.objects.all()
+
+    # loop over all tokens and search correponding
+    matched_token = None
+    for one_token in all_tokens:
+        if check_password(user_token, one_token.token):
+            matched_token = one_token.token
+            break
+
+    if matched_token == None : return JsonResponse({'error': 'Token introuvable'}, status=400)
+
+    try:
+        token_obj = Password_reset_token.objects.get(token=matched_token)
+        if token_obj.is_expired(): #if token expired delete it 
+            token_obj.delete()
+            return JsonResponse({'error': 'Token expiré'}, status=400)
+    except Exception as e:
+        print(e)
+        return JsonResponse({'error': 'Invalid token'}, status=400)
+
+
+    # get user linked to token
+    user1 = token_obj.user 
+    new_password = data.get('password')
+    if new_password:
+        user1.set_password(new_password)  # hash password
+        user1.save()
+        token_obj.delete() #delete token from table
+        return JsonResponse({'success': 'Mot de passe changé'}, status=200)
+    else:
+        return JsonResponse({'error': 'Mot de passe introuvable'}, status=400)
+
+@api_view(['GET'])
+def user_data(request):
+    user = request.user
+    if user.is_student:  
+        user.classe = Students.objects.get(user=user.id).classe.name
+
+    if user.is_teacher :  
+        user.subject = Teachers.objects.get(user=user.id).subject.name
+
+    serializer = UserSerializer(user) #transform user to dict
+    return Response(serializer.data)

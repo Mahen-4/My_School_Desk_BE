@@ -56,13 +56,13 @@ def admin_action_view(request):
                     #create or add to class 
                     try: # try if classe exist
                         classe1 = Classes.objects.get(name=row['classes'].lower()) #get classe
-                        student1 = Students(id_user = user1, id_class = classe1) #create student
+                        student1 = Students(user = user1, classe = classe1) #create student
                         student1.save() #save to db
                     
                     except: # if classe not exist
                         classe1 = Classes(name = row['classes'].lower()) #create classe
                         classe1.save() #save to db
-                        student1 = Students(id_user = user1, id_class = classe1) #create student
+                        student1 = Students(user = user1, classe = classe1) #create student
                         student1.save() #save to db
 
                     #sending email
@@ -93,13 +93,13 @@ def admin_action_view(request):
                     #create teacher and assign subject created or existing subject 
                     try: # try if subject exist
                         subject1 = Subjects.objects.get(name=row['subject'].lower()) #get subject
-                        teacher1 = Teachers(id_user = user1, id_subject = subject1) #create teacher
+                        teacher1 = Teachers(user = user1, subject = subject1) #create teacher
                         teacher1.save() #save to db
                     
                     except: # if subject not exist
                         subject1 = Subjects(name = row['subject'].lower()) #create subject
                         subject1.save() #save to db
-                        teacher1 = Teachers(id_user = user1,id_subject = subject1) #create teacher
+                        teacher1 = Teachers(user = user1,subject = subject1) #create teacher
                         teacher1.save() #save to db
 
                     #sending email

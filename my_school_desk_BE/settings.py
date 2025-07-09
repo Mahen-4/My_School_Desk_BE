@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'grades',
     'school',
     'works',
+    'quiz',
     'rest_framework',
     'corsheaders'
 
