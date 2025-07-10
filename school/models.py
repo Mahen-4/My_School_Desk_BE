@@ -2,11 +2,12 @@ from django.db import models
 from custom_auth.models import User
 from django.core.validators import MinValueValidator
 from collections import defaultdict
+import datetime
 
 # Create your models here.
 
 class Classes(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
         
     def __str__(self): #description methode
         return self.name
@@ -16,12 +17,13 @@ class Classes(models.Model):
 
         all_homeworks = {} #create dict
 
+
         #for each homework of the class create a dict by id containing details of each homework
         for homework in self.classe_homeworks.all():
             all_homeworks[homework.id] = {
-                "subject": homework.teacher.subject.name,
-                "description" : homework.description,
-                "due_date" : homework.due_date
+                "homework_subject": homework.teacher.subject.name,
+                "homework_description" : homework.description,
+                "homework_due_date" : homework.due_date.strftime("%d-%m-%Y")
             }
 
         return all_homeworks
@@ -54,6 +56,17 @@ class Classes(models.Model):
             }
 
         return all_quiz
+
+    def get_classe_students(self):
+        all_students = {}
+
+        for student in self.classe_students.all():
+            all_students[student.id] = {
+                "first_name": student.user.first_name,
+                "last_name": student.user.last_name
+            }
+
+        return all_students
 
 class Students(models.Model):
     average = models.FloatField(null=True, blank=True, default=None, validators=[MinValueValidator(0)])
@@ -125,7 +138,7 @@ class Teachers(models.Model):
             all_homeworks[homework.id] = {   
                 "homework_description" : homework.description,
                 "homework_created_at" : homework.created_at,
-                "homework_due_date" : homework.due_date,
+                "homework_due_date" : homework.due_date.strftime('%d-%m-%Y'),
                 "classe_name": homework.classe.name
             }
 
