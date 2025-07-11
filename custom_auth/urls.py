@@ -7,5 +7,6 @@ urlpatterns = [
     path('digi_code_check/',views.digi_code_check),
     path('reset_password/', views.reset_password),
     path('change_password/', views.change_password),
-    path('user_data/', views.user_data)
+    path('user_data/', views.user_data),
+    path('logout/', views.logOut)
 ]

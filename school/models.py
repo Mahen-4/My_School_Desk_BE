@@ -69,18 +69,12 @@ class Classes(models.Model):
         return all_students
 
 class Students(models.Model):
-    average = models.FloatField(null=True, blank=True, default=None, validators=[MinValueValidator(0)])
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student" )
     classe = models.ForeignKey(Classes, on_delete=models.SET_NULL, null=True, blank=True, related_name="classe_students")
 
     def __str__(self): #description methode
         return f'{self.user.last_name.upper()} {self.user.first_name} - {self.classe.name}'
 
-    def calc_average(self): # get average of the students
-        list_results = [result for result in self.student_results.all() ] #get all results as a list
-        self.average = sum(list_results) / len(list_results) # get average
-        self.save
-        return self.average #return average
 
     def get_results_by_subject(self):
 
@@ -185,6 +179,15 @@ class Teachers(models.Model):
 
         #get all quiz created by the teacher and return the dict with all (title + the id)
         for quiz in self.teacher_quiz.all():
-            all_quiz_created[quiz.id] = {"quiz_title": quiz.title}
+            temp_classes = []
+            #get all classes asigned to
+            for classe in quiz.classes.all():
+                temp_classes.append(classe.name)
+
+            all_quiz_created[quiz.id] = {
+                "quiz_title": quiz.title,
+                "classes": temp_classes,
+                "quiz_description": quiz.description
+                }
 
         return all_quiz_created    

@@ -216,3 +216,12 @@ def user_data(request):
 
     serializer = UserSerializer(user) #transform user to dict
     return Response(serializer.data)
+
+@api_view(['POST'])
+@csrf_protect
+def logOut(request):
+    try:
+        logout(request)
+        return JsonResponse({'success': "Déconnecté"}, status=200)
+    except:
+        return JsonResponse({'error': "Erreur de déconnexion"}, status=400)

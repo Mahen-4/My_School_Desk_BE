@@ -6,6 +6,7 @@ from .models import HomeWorks
 from rest_framework.response import Response
 from django.http import JsonResponse
 import datetime
+from django.views.decorators.csrf import csrf_protect
 
 @api_view(['GET'])
 def get_all_homeworks_created_teacher(request):
@@ -16,6 +17,7 @@ def get_all_homeworks(request):
     return Response(request.user.student.classe.get_classe_homeworks())
 
 @api_view(['POST'])
+@csrf_protect
 def add_homework(request):
     data = request.data #get data from front
     due_date = datetime.datetime.strptime(data.get('due_date'), "%Y-%m-%d").date() #convert to date format
@@ -29,6 +31,7 @@ def add_homework(request):
         return JsonResponse({"error": "Erreur lors de l'ajout !"})
 
 @api_view(['PUT'])
+@csrf_protect
 def edit_homework(request):
     data = request.data #get data from front
     due_date = datetime.datetime.strptime(data.get('due_date'), "%Y-%m-%d").date() #convert to date format
@@ -45,6 +48,7 @@ def edit_homework(request):
         return JsonResponse({'error': "erreur de modification !"}, status=400)    
 
 @api_view(['DELETE'])
+@csrf_protect
 def delete_homework(request, id):
     
     try:

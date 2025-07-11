@@ -5,9 +5,10 @@ from school.models import Classes, Students
 from rest_framework.response import Response
 from django.http import JsonResponse
 from .models import Results
-
+from django.views.decorators.csrf import csrf_protect
 
 @api_view(['POST'])
+@csrf_protect
 def add_results(request):
     data = request.data #get data
 
@@ -44,6 +45,7 @@ def get_created(request):
 
 
 @api_view(['PUT'])
+@csrf_protect
 def edit_result(request):
     data = request.data
     try:
@@ -62,6 +64,7 @@ def edit_result(request):
     
 
 @api_view(['DELETE'])
+@csrf_protect
 def delete_results(request, title_classe):
     
     #split title_classe
