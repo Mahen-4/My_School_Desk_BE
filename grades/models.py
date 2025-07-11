@@ -5,7 +5,7 @@ from school.models import Classes, Students, Teachers
 # Create your models here.
 
 class Results(models.Model):
-    title = models.CharField(max_length=150, unique=True)
+    title = models.CharField(max_length=150)
     score = models.FloatField(validators=[MinValueValidator(0)])
     added_date = models.DateTimeField(auto_now_add=True)
     score_on = models.IntegerField(validators=[MinValueValidator(0)])

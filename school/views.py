@@ -18,6 +18,5 @@ def get_all_subjects(request):
 
 @api_view(['POST'])
 def get_classe_all_students(request):
-    print(request.data)
     classe = Classes.objects.get(name=request.data)
     return Response(classe.get_classe_students())

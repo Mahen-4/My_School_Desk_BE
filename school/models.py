@@ -92,7 +92,7 @@ class Students(models.Model):
                 "title": result.title,
                 "score" : result.score,
                 "result_on" : result.score_on,
-                "result_added_date": result.added_date
+                "result_added_date": result.added_date.strftime('%d-%m-%Y')
             })
 
         return result_by_subject
@@ -165,9 +165,10 @@ class Teachers(models.Model):
 
         results_created = defaultdict(list) #create dict
 
+
         #for each result of the teacher create a dict containing details of each student rate by exam title and classe
         for result in self.teacher_results.all():
-            results_created[result.title][result.classe.name].append({
+            results_created[f'{result.title}-{result.classe.name}'].append({
                 "student_first_name" : result.student.user.first_name,
                 "student_last_name" : result.student.user.last_name,
                 "student_score" : result.score,

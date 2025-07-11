@@ -25,5 +25,7 @@ urlpatterns = [
     path('auth/', include(("custom_auth.urls", "custom_auth"), "custom_auth")),
     path('',include(("school.urls", "school"), "school")),
     path('',include(("works.urls", "works"), "works")),
+    path('',include(("grades.urls", "grades"), "grades")),
+    
     
 ]
