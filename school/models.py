@@ -50,7 +50,7 @@ class Classes(models.Model):
 
         #for each question get the question :responses dict and add to array 
         for assign_quiz in self.classe_quiz.all():
-            all_quiz[assign_quiz.quiz] = {
+            all_quiz[assign_quiz.quiz.id] = {
                 "quiz_title" : assign_quiz.quiz.title,
                 "quiz_subject": assign_quiz.quiz.teacher.subject.name
             }

@@ -29,10 +29,19 @@ class Quiz(models.Model):
 
         return questions_responses
 
+    def get_quiz_info(self):
+        return {self.id : {
+            "quiz_title": self.title,
+            "quiz_description": self.description,
+            "quiz_added_date": self.added_date.strftime('%d-%m-%Y'),
+            "quiz_teacher" : f'{self.teacher.user.last_name.upper()} {self.teacher.user.first_name}',
+            "quiz_teacher_subject" : self.teacher.subject.name
+        }}
+
 class Attempts(models.Model):
     student = models.ForeignKey(Students, on_delete=models.CASCADE)
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
-    score = models.FloatField(validators=[MinValueValidator(0)])
+    score = models.CharField(max_length=50)
     date_attempted = models.DateTimeField(auto_now_add=True)
     
 class Assigned_quiz(models.Model):

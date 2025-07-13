@@ -4,7 +4,8 @@ from school.models import Classes, Subjects
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_protect
 from django.http import JsonResponse
-from .models import Quiz, Questions, Responses
+from .models import Quiz, Questions, Responses, Attempts
+from django.forms.models import model_to_dict
 
 
 @api_view(['POST'])
@@ -53,10 +54,13 @@ def get_teacher_created_quiz(request):
 
 @api_view(['POST'])
 @csrf_protect
-def get_quiz_info(request):
+def get_quiz_questions_responses(request):
     data = request.data
-    quiz1 = Quiz.objects.get(id=data)
-    return Response(quiz1.get_questions_responses())
+    try:
+        quiz1 = Quiz.objects.get(id=data)
+        return Response(quiz1.get_questions_responses())
+    except:
+        return JsonResponse({"error": "Quiz introuvable"})
 
 @api_view(['PUT'])
 @csrf_protect
@@ -126,3 +130,61 @@ def delete_quiz(request, id):
     
     except:
         return JsonResponse({'error': "Le Quiz n'a pas été supprimé !"}, status=400)    
+
+
+@api_view(['GET'])
+def get_classe_quiz(request):
+    return Response(request.user.student.classe.get_classe_quiz())
+
+@api_view(['POST'])
+@csrf_protect
+def get_quiz_info(request):
+    data = request.data
+    try:
+        quiz1 = Quiz.objects.get(id=data)
+        try:
+            attempt = Attempts.objects.get(quiz=quiz1, student=request.user.student)
+
+            #returning data add attempt data to the dict returned by the function get_quiz_info
+            return_data = quiz1.get_quiz_info()
+            return_data['date_last_attempt']  = attempt.date_attempted.strftime('%d-%m-%Y')
+            return_data['last_score'] = attempt.score
+
+            return Response(return_data)
+        
+        except Exception as e:
+            return Response(quiz1.get_quiz_info())
+        
+    except:
+        return JsonResponse({"error": "Quiz introuvable "})
+    
+
+@api_view(['POST'])
+@csrf_protect
+def add_attempt(request):
+    data = request.data   
+
+    #check if already attempted
+    attempt1 = Attempts.objects.filter(student=request.user.student,quiz=Quiz.objects.get(id=data.get('quiz_id'))) 
+
+    if attempt1.exists():
+        try:
+            #save on existing attempt
+            attempt1.score = data.get('score')
+            attempt1.save()
+            return JsonResponse({"success": "Mise à jour réussie"})
+        except:
+            return JsonResponse({"error": "Mise à jour de la tentative invalide"})
+
+    else:
+        try:
+            #create new attempts
+            attempt1 = Attempts(
+                student=request.user.student,
+                quiz=Quiz.objects.get(id=data.get('quiz_id')),
+                score=data.get('score')
+                )
+            attempt1.save()
+            return JsonResponse({"success": "Insertion réussie"})
+        except:
+            return JsonResponse({"error": "Insertion de la tentative invalide"})
