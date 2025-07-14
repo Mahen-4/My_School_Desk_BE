@@ -31,16 +31,17 @@ class Classes(models.Model):
 
     def get_classe_last_homeworks(self): # function for students
 
-        last_homeworks = {} #create dict
+        last_homeworks = [] #init array
 
         last5_homeworks = [homework for homework in self.classe_homeworks.all()][-5:] # get last 5 homeworks
 
-        #for each last 5 homework of the class create a dict by subject containing details of each homework
+        #for each last 5 homework of the class create a dict by subject containing details of each homework and add to array
         for homework in last5_homeworks:
-            last_homeworks[homework.teacher.subject.name] = {
+            last_homeworks.append({
+                "subject": homework.teacher.subject.name,
                 "description" : homework.description,
-                "due_date" : homework.due_date
-            }
+                "due_date" : homework.due_date.strftime('%d/%m')
+            })
 
         return last_homeworks
 
@@ -92,18 +93,18 @@ class Students(models.Model):
         return result_by_subject
 
     def get_last_results(self):
-        last_results = {} #create dict
+        last_results = [] #init array
 
         last5_result = [result for result in self.student_results.all()][-5:] # get last 5 result
 
-        #for each result of the 5 latest create a dict containing details of each exam
+        #for each result of the 5 latest create a dict containing details of each exam and add to array
         for result in last5_result:
-            last_results[result.title] = {
+            last_results.append({
+                "result_title": result.title,
                 "subject": result.teacher.subject.name,
                 "score" : result.score,
                 "result_on" : result.score_on,
-                "result_added_date": result.added_date
-            }
+            })
 
         return last_results
 

@@ -7,5 +7,6 @@ urlpatterns = [
     path('homeworks/edit_homework', views.edit_homework),
     path('homeworks/delete_homework/<int:id>', views.delete_homework),
     path('homeworks/all', views.get_all_homeworks),
+    path('homeworks/get_last_homeworks', views.get_last_homeworks),
 
 ]

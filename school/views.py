@@ -22,3 +22,5 @@ def get_all_subjects(request):
 def get_classe_all_students(request):
     classe = Classes.objects.get(name=request.data)
     return Response(classe.get_classe_students())
+
+

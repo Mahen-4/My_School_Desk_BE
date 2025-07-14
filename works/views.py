@@ -58,3 +58,8 @@ def delete_homework(request, id):
     
     except:
         return JsonResponse({'error': "Le devoirs n'a pas été supprimé !"}, status=400)    
+
+@api_view(['GET'])
+@csrf_protect
+def get_last_homeworks(request):
+    return Response(request.user.student.classe.get_classe_last_homeworks())

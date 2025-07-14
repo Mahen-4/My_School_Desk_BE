@@ -85,3 +85,9 @@ def delete_results(request, title_classe):
 @api_view(['GET'])
 def get_student_results(request):
     return Response(request.user.student.get_results_by_subject())
+
+
+@api_view(['GET'])
+@csrf_protect
+def get_last_results(request):
+    return Response(request.user.student.get_last_results())
