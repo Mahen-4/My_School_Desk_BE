@@ -35,7 +35,7 @@ class Classes(models.Model):
 
         last5_homeworks = [homework for homework in self.classe_homeworks.all()][-5:] # get last 5 homeworks
 
-        #for each last 5 homework of the class create a dict by subject containing details of each homework and add to array
+        #for each last 5 homework of the class create a dict by subject containing details of each homework and add to list
         for homework in last5_homeworks:
             last_homeworks.append({
                 "subject": homework.teacher.subject.name,
@@ -97,7 +97,7 @@ class Students(models.Model):
 
         last5_result = [result for result in self.student_results.all()][-5:] # get last 5 result
 
-        #for each result of the 5 latest create a dict containing details of each exam and add to array
+        #for each result of the 5 latest create a dict containing details of each exam and add to list
         for result in last5_result:
             last_results.append({
                 "result_title": result.title,
@@ -140,18 +140,17 @@ class Teachers(models.Model):
         return all_homeworks
 
     def get_last_homeworks_created(self):
-        last_homeworks = {} #create dict
+        last_homeworks = [] #init array
 
         last5_homeworks = [homework for homework in self.teacher_homeworks.all()][-5:] # get last 5 result
 
-        #for each result of the 5 latest create a dict containing details of each homework
+        #for each result of the 5 latest create a dict containing details of each homework and append to list
         for homework in last5_homeworks:
-            last_homeworks[homework.id] = {   
+            last_homeworks.append({   
                 "homework_description" : homework.description,
-                "homework_created_at" : homework.created_at,
-                "homework_due_date" : homework.due_date,
+                "homework_due_date" : homework.due_date.strftime('%d/%m'),
                 "classe_name": homework.classe.name
-            }
+            })
 
         return last_homeworks
 

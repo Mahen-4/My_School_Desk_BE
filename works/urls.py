@@ -8,5 +8,5 @@ urlpatterns = [
     path('homeworks/delete_homework/<int:id>', views.delete_homework),
     path('homeworks/all', views.get_all_homeworks),
     path('homeworks/get_last_homeworks', views.get_last_homeworks),
-
+    path('homeworks/get_last_homeworks_created_teacher', views.get_last_homeworks_created_teacher),
 ]

@@ -63,3 +63,9 @@ def delete_homework(request, id):
 @csrf_protect
 def get_last_homeworks(request):
     return Response(request.user.student.classe.get_classe_last_homeworks())
+
+
+@api_view(['GET'])
+@csrf_protect
+def get_last_homeworks_created_teacher(request):
+    return Response(request.user.teacher.get_last_homeworks_created())

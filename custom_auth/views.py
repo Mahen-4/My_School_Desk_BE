@@ -16,6 +16,7 @@ import uuid
 from .serializers import UserSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
+from django.contrib.auth.decorators import login_required
 
 #load env variables
 env = environ.Env()
@@ -206,6 +207,7 @@ def change_password(request):
         return JsonResponse({'error': 'Mot de passe introuvable'}, status=400)
 
 @api_view(['GET'])
+@login_required
 def user_data(request):
     user = request.user
     if user.is_student:  

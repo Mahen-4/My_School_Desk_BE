@@ -165,9 +165,9 @@ def add_attempt(request):
     data = request.data   
 
     #check if already attempted
-    attempt1 = Attempts.objects.filter(student=request.user.student,quiz=Quiz.objects.get(id=data.get('quiz_id'))) 
+    attempt1 = Attempts.objects.filter(student=request.user.student,quiz=Quiz.objects.get(id=data.get('quiz_id'))).first()
 
-    if attempt1.exists():
+    if attempt1:
         try:
             #save on existing attempt
             attempt1.score = data.get('score')
