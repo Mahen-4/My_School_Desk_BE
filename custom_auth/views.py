@@ -139,7 +139,7 @@ def reset_password(request):
 
         #if a token for this user already exist return error 
         if Password_reset_token.objects.filter(user=user1).exists():
-            exist_and_valid_check = Password_reset_token(user=user1)
+            exist_and_valid_check = Password_reset_token.objects.get(user=user1)
             if not exist_and_valid_check.is_expired():
                 return JsonResponse({'error': 'Token déjà envoyé et toujours valide ! (attendre 10 minutes pour un nouveau email)'})
             else:
