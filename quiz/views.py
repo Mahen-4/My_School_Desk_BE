@@ -6,10 +6,12 @@ from django.views.decorators.csrf import csrf_protect
 from django.http import JsonResponse
 from .models import Quiz, Questions, Responses, Attempts
 from django.forms.models import model_to_dict
+from my_school_desk_BE.decorators import student_required, teacher_required
 
 
 @api_view(['POST'])
 @csrf_protect
+@teacher_required(False)
 def add_quiz(request):
 
     data = request.data
@@ -48,6 +50,7 @@ def add_quiz(request):
 
 @api_view(['GET'])
 @csrf_protect
+@teacher_required(False)
 def get_teacher_created_quiz(request):
     return Response(request.user.teacher.get_quiz_created())
 
@@ -64,6 +67,7 @@ def get_quiz_questions_responses(request):
 
 @api_view(['PUT'])
 @csrf_protect
+@teacher_required(False)
 def edit_quiz(request):
 
     data = request.data
@@ -110,6 +114,7 @@ def edit_quiz(request):
 
 @api_view(['DELETE'])
 @csrf_protect
+@teacher_required(False)
 def delete_question(request, id):
     try:
         question1 = Questions.objects.get(id=id)
@@ -122,6 +127,7 @@ def delete_question(request, id):
 
 @api_view(['DELETE'])
 @csrf_protect
+@teacher_required(False)
 def delete_quiz(request, id):
     try:
         quiz1 = Quiz.objects.get(id=id)
@@ -133,6 +139,7 @@ def delete_quiz(request, id):
 
 
 @api_view(['GET'])
+@student_required(False)
 def get_classe_quiz(request):
     return Response(request.user.student.classe.get_classe_quiz())
 
@@ -161,6 +168,7 @@ def get_quiz_info(request):
 
 @api_view(['POST'])
 @csrf_protect
+@student_required(False)
 def add_attempt(request):
     data = request.data   
 

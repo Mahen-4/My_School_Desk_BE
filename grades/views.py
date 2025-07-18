@@ -6,9 +6,11 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 from .models import Results
 from django.views.decorators.csrf import csrf_protect
+from my_school_desk_BE.decorators import student_required, teacher_required
 
 @api_view(['POST'])
 @csrf_protect
+@teacher_required(False)
 def add_results(request):
     data = request.data #get data
 
@@ -40,12 +42,14 @@ def add_results(request):
         return JsonResponse({"error": "Erreur d'ajout"})
 
 @api_view(['GET'])
+@teacher_required(False)
 def get_created(request):
     return Response(request.user.teacher.get_results_created())
 
 
 @api_view(['PUT'])
 @csrf_protect
+@teacher_required(False)
 def edit_result(request):
     data = request.data
     try:
@@ -65,6 +69,7 @@ def edit_result(request):
 
 @api_view(['DELETE'])
 @csrf_protect
+@teacher_required(False)
 def delete_results(request, title_classe):
     
     #split title_classe
@@ -83,11 +88,13 @@ def delete_results(request, title_classe):
         return JsonResponse({'error': "L'examen n'a pas été supprimé !"}, status=400)    
 
 @api_view(['GET'])
+@student_required(False)
 def get_student_results(request):
     return Response(request.user.student.get_results_by_subject())
 
 
 @api_view(['GET'])
 @csrf_protect
+@student_required(False)
 def get_last_results(request):
     return Response(request.user.student.get_last_results())

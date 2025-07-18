@@ -52,19 +52,7 @@ class Questions(models.Model):
     title = models.TextField(max_length=250)
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="quiz_questions")
 
-    def get_responses(self):
-        all_responses = defaultdict(list) #init dict
-        
-        #for each responses of the question create an unique dict containing data about the responses
-        for response in self.question_responses.all():
-            all_responses[self.title].append({
-                'response_title': response.title,
-                'is_answer': response.is_answer,
-                'question_id': self.id,
-                'response_id': response.id,
-            })
-
-        return all_responses
+    
 
 class Responses(models.Model):
     title = models.TextField(max_length=250)

@@ -7,17 +7,22 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 import datetime
 from django.views.decorators.csrf import csrf_protect
+from my_school_desk_BE.decorators import student_required, teacher_required
 
 @api_view(['GET'])
+@csrf_protect
+@teacher_required(False)
 def get_all_homeworks_created_teacher(request):
     return Response(request.user.teacher.get_homeworks_created())
 
 @api_view(['GET'])
+@csrf_protect
 def get_all_homeworks(request):
     return Response(request.user.student.classe.get_classe_homeworks())
 
 @api_view(['POST'])
 @csrf_protect
+@teacher_required(False)
 def add_homework(request):
     data = request.data #get data from front
     due_date = datetime.datetime.strptime(data.get('due_date'), "%Y-%m-%d").date() #convert to date format
@@ -32,6 +37,7 @@ def add_homework(request):
 
 @api_view(['PUT'])
 @csrf_protect
+@teacher_required(False)
 def edit_homework(request):
     data = request.data #get data from front
     due_date = datetime.datetime.strptime(data.get('due_date'), "%Y-%m-%d").date() #convert to date format
@@ -49,6 +55,7 @@ def edit_homework(request):
 
 @api_view(['DELETE'])
 @csrf_protect
+@teacher_required(False)
 def delete_homework(request, id):
     
     try:
@@ -67,5 +74,6 @@ def get_last_homeworks(request):
 
 @api_view(['GET'])
 @csrf_protect
+@teacher_required(False)
 def get_last_homeworks_created_teacher(request):
     return Response(request.user.teacher.get_last_homeworks_created())
