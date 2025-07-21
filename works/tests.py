@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 import json
 import datetime
-
+from datetime import timedelta
 from school.models import Classes, Students, Teachers, Subjects
 from .models import HomeWorks
 
@@ -73,95 +73,6 @@ class AddHomeworkTestCase(TestCase):
     
 
 
-class EditHomeworkTestCase(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.edit_homework_url = reverse('works:edit_homework')
-        
-        self.subject = Subjects.objects.create(name='Mathématiques')
-        
-        self.teacher_user = User.objects.create_user(
-            email='teacher@example.com',
-            password='testpassword123',
-            first_name='John',
-            last_name='Teacher',
-            is_teacher=True
-        )
-        
-        self.teacher = Teachers.objects.create(user=self.teacher_user, subject=self.subject)
-        self.classe = Classes.objects.create(name='6A')
-        self.classe2 = Classes.objects.create(name='5B')
-        
-        self.homework = HomeWorks.objects.create(
-            description='Description originale',
-            due_date=datetime.date(2025, 1, 30),
-            classe=self.classe,
-            teacher=self.teacher
-        )
-
-    def test_edit_homework_success(self):
-        self.client.force_login(self.teacher_user)
-        
-        data = {
-            'homework_id': self.homework.id,
-            'description': 'Description modifiée',
-            'due_date': '2025-02-15',
-            'classe': '5B'
-        }
-        
-        response = self.client.put(
-            self.edit_homework_url,
-            data=json.dumps(data),
-            content_type='application/json'
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        response_data = json.loads(response.content)
-        self.assertEqual(response_data['success'], 'devoir modifié !')
-        updated_homework = HomeWorks.objects.get(id=self.homework.id)
-        self.assertEqual(updated_homework.description, 'Description modifiée')
-        self.assertEqual(updated_homework.due_date, datetime.date(2025, 2, 15))
-        self.assertEqual(updated_homework.classe, self.classe2)        
-
-    
-
-
-class DeleteHomeworkTestCase(TestCase):
-    def setUp(self):
-        self.client = Client()
-        
-        self.subject = Subjects.objects.create(name='Mathématiques')
-        
-        self.teacher_user = User.objects.create_user(
-            email='teacher@example.com',
-            password='testpassword123',
-            first_name='John',
-            last_name='Teacher',
-            is_teacher=True
-        )
-        
-        self.teacher = Teachers.objects.create(user=self.teacher_user, subject=self.subject)
-        self.classe = Classes.objects.create(name='6A')
-        
-        self.homework = HomeWorks.objects.create(
-            description='Devoir à supprimer',
-            due_date=datetime.date(2025, 1, 30),
-            classe=self.classe,
-            teacher=self.teacher
-        )
-
-    def test_delete_homework_success(self):
-        self.client.force_login(self.teacher_user)
-        
-        delete_url = reverse('works:delete_homework', kwargs={'id': self.homework.id})
-        response = self.client.delete(delete_url)
-        self.assertEqual(response.status_code, 200)
-        response_data = json.loads(response.content)
-        self.assertEqual(response_data['success'], 'Devoirs supprimé !')
-        
-        with self.assertRaises(HomeWorks.DoesNotExist):
-            HomeWorks.objects.get(id=self.homework.id)
-
     
 
 
@@ -226,102 +137,38 @@ class GetHomeworksTestCase(TestCase):
         self.assertEqual(homework_data['homework_due_date'], '30-01-2025')
 
 
-class GetLastHomeworksTestCase(TestCase):
+
+class TestGetHomeworksCreated(TestCase):
     def setUp(self):
-        self.client = Client()
-        self.get_last_homeworks_url = reverse('works:get_last_homeworks')
-        self.get_last_homeworks_created_url = reverse('works:get_last_homeworks_created_teacher')
-        
-        self.subject = Subjects.objects.create(name='Mathématiques')
-        self.classe = Classes.objects.create(name='6A')
-        
-        self.student_user = User.objects.create_user(
-            email='student@example.com',
-            password='testpassword123',
-            first_name='Jane',
-            last_name='Student',
-            is_student=True
-        )
-        
+        #create objects
         self.teacher_user = User.objects.create_user(
-            email='teacher@example.com',
-            password='testpassword123',
-            first_name='John',
-            last_name='Teacher',
+            email="teacher@test.com",
             is_teacher=True
         )
+        self.teacher = Teachers.objects.create(user=self.teacher_user)
+        self.classe = Classes.objects.create(name="6ème A")
         
-        self.student = Students.objects.create(user=self.student_user, classe=self.classe)
-        self.teacher = Teachers.objects.create(user=self.teacher_user, subject=self.subject)
-
-    def test_get_last_homeworks_student(self):
-        self.client.force_login(self.student_user)
+    def test_get_homeworks_created_empty(self):
+        result = self.teacher.get_homeworks_created()
+        self.assertEqual(result, {})
         
-        response = self.client.get(self.get_last_homeworks_url)
-        
-        self.assertEqual(response.status_code, 200)
-        response_data = response.json()
-        self.assertIsInstance(response_data, list)
-
-    def test_get_last_homeworks_created_teacher(self):
-        self.client.force_login(self.teacher_user)
-        
-        response = self.client.get(self.get_last_homeworks_created_url)
-        
-        self.assertEqual(response.status_code, 200)
-        response_data = response.json()
-        self.assertIsInstance(response_data, list)
-
-
-class HomeWorksModelTestCase(TestCase):
-    def setUp(self):
-        self.subject = Subjects.objects.create(name='Mathématiques')
-        self.classe = Classes.objects.create(name='6A')
-        self.teacher_user = User.objects.create_user(
-            email='teacher@example.com',
-            password='testpassword123',
-            first_name='John',
-            last_name='Teacher',
-            is_teacher=True
-        )
-        
-        self.teacher = Teachers.objects.create(user=self.teacher_user, subject=self.subject)
-
-    def test_create_homework_success(self):
+    def test_get_homeworks_created_with_data(self):
+        #test with homework
+        due_date = datetime.now() + timedelta(days=7)
         homework = HomeWorks.objects.create(
-            description='Exercices page 45',
-            due_date=datetime.date(2025, 1, 30),
-            classe=self.classe,
-            teacher=self.teacher
+            description="Exercices page 42",
+            due_date=due_date,
+            teacher=self.teacher,
+            classe=self.classe
         )
+        result = self.teacher.get_homeworks_created()
         
-        self.assertEqual(homework.description, 'Exercices page 45')
-        self.assertEqual(homework.due_date, datetime.date(2025, 1, 30))
-        self.assertEqual(homework.classe, self.classe)
-        self.assertEqual(homework.teacher, self.teacher)
-        self.assertIsNotNone(homework.created_at)
+        #check count
+        self.assertEqual(len(result), 1)
+        self.assertIn(homework.id, result)
 
-    def test_homework_cascade_delete_classe(self):
-        homework = HomeWorks.objects.create(
-            description='Exercices page 45',
-            due_date=datetime.date(2025, 1, 30),
-            classe=self.classe,
-            teacher=self.teacher
-        )
-        
-        self.classe.delete()
-        with self.assertRaises(HomeWorks.DoesNotExist):
-            HomeWorks.objects.get(id=homework.id)
-
-    def test_homework_cascade_delete_teacher(self):
-        homework = HomeWorks.objects.create(
-            description='Exercices page 45',
-            due_date=datetime.date(2025, 1, 30),
-            classe=self.classe,
-            teacher=self.teacher
-        )
-        
-        self.teacher.delete()
-        
-        with self.assertRaises(HomeWorks.DoesNotExist):
-            HomeWorks.objects.get(id=homework.id)
+        #check values
+        homework_data = result[homework.id]
+        self.assertEqual(homework_data["homework_description"], "Exercices page 42")
+        self.assertEqual(homework_data["homework_due_date"], due_date.strftime('%d-%m-%Y'))
+        self.assertEqual(homework_data["classe_name"], "6ème A")

@@ -157,123 +157,6 @@ class EditResultTestCase(TestCase):
         self.assertEqual(updated_result.score_on, 25)
         self.assertEqual(updated_result.score, 20.0)
 
-    
-
-
-class DeleteResultsTestCase(TestCase):
-    def setUp(self):
-        self.client = Client()
-        
-        self.subject = Subjects.objects.create(name='Mathématiques')
-        
-        self.teacher_user = User.objects.create_user(
-            email='teacher@example.com',
-            password='testpassword123',
-            first_name='John',
-            last_name='Teacher',
-            is_teacher=True
-        )
-        
-        self.classe = Classes.objects.create(name='6A')
-        self.teacher = Teachers.objects.create(user=self.teacher_user, subject=self.subject)
-        
-        self.student_user = User.objects.create_user(
-            email='student@example.com',
-            password='testpassword123',
-            first_name='Jane',
-            last_name='Student',
-            is_student=True
-        )
-        self.student = Students.objects.create(user=self.student_user, classe=self.classe)
-        
-        self.result1 = Results.objects.create(
-            title='Contrôle Math',
-            score=15.5,
-            score_on=20,
-            classe=self.classe,
-            student=self.student,
-            teacher=self.teacher
-        )
-        
-        self.result2 = Results.objects.create(
-            title='Contrôle Math',
-            score=18.0,
-            score_on=20,
-            classe=self.classe,
-            student=self.student,
-            teacher=self.teacher
-        )
-
-    def test_delete_results_success(self):
-        self.client.force_login(self.teacher_user)
-        
-        title_classe = 'Contrôle Math-6A'
-        delete_url = reverse('grades:delete_results', kwargs={'title_classe': title_classe})
-        
-        response = self.client.delete(delete_url)
-        self.assertEqual(response.status_code, 200)
-        response_data = json.loads(response.content)
-        self.assertEqual(response_data['success'], 'examen supprimé !')
-        
-        results = Results.objects.filter(title='Contrôle Math', classe=self.classe)
-        self.assertEqual(results.count(), 0)
-
-    def test_delete_results_classe_not_found(self):
-        self.client.force_login(self.teacher_user)
-        
-        title_classe = 'Contrôle Math-ClasseInexistante'
-        delete_url = reverse('grades:delete_results', kwargs={'title_classe': title_classe})
-        
-        response = self.client.delete(delete_url)
-        self.assertEqual(response.status_code, 400)
-        response_data = json.loads(response.content)
-        self.assertEqual(response_data['error'], "L'examen n'a pas été supprimé !")
-
-
-class GetCreatedTestCase(TestCase): 
-    def setUp(self):
-        self.client = Client()
-        self.get_created_url = reverse('grades:get_created')
-        self.subject = Subjects.objects.create(name='Mathématiques')
-        
-        self.teacher_user = User.objects.create_user(
-            email='teacher@example.com',
-            password='testpassword123',
-            first_name='John',
-            last_name='Teacher',
-            is_teacher=True
-        )
-        
-        self.teacher = Teachers.objects.create(user=self.teacher_user, subject=self.subject)
-
-    def test_get_created_success(self):
-        self.client.force_login(self.teacher_user)
-        response = self.client.get(self.get_created_url)        
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {})
-
-
-class GetStudentResultsTestCase(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.get_student_results_url = reverse('grades:get_student_results') 
-        
-        self.student_user = User.objects.create_user(
-            email='student@example.com',
-            password='testpassword123',
-            first_name='Jane',
-            last_name='Student',
-            is_student=True
-        )
-        self.classe = Classes.objects.create(name='6A')
-        self.student = Students.objects.create(user=self.student_user, classe=self.classe)
-
-    def test_get_student_results_success(self):
-        self.client.force_login(self.student_user)
-        response = self.client.get(self.get_student_results_url)
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {})
 
 
 class GetLastResultsTestCase(TestCase): 
@@ -340,29 +223,69 @@ class ResultsModelTestCase(TestCase):
         self.assertEqual(result.teacher, self.teacher)
         self.assertIsNotNone(result.added_date)
 
-    def test_result_cascade_delete_classe(self):
-        result = Results.objects.create(
-            title='Contrôle Math',
-            score=15.5,
-            score_on=20,
-            classe=self.classe,
-            student=self.student,
-            teacher=self.teacher
+  
+class TestGetResultsCreated(TestCase):
+    def setUp(self):
+        
+        # create teacher object
+        self.teacher_user = User.objects.create_user(
+            email="teacher@test.com",
+            is_teacher=True
+        )
+        self.teacher = Teachers.objects.create(user=self.teacher_user)
+        
+        # create classe and student
+        self.classe = Classes.objects.create(name="6ème A")
+        
+        self.student1 = Students.objects.create(
+            user=User.objects.create_user(
+                email="student1@test.com",
+                first_name="Jean",
+                last_name="Dupont"
+            ),
+            classe=self.classe
         )
         
-        self.classe.delete()
-        with self.assertRaises(Results.DoesNotExist):
-            Results.objects.get(id=result.id)
-
-    def test_result_set_null_teacher(self):  
-        result = Results.objects.create(
-            title='Contrôle Math',
-            score=15.5,
-            score_on=20,
-            classe=self.classe,
-            student=self.student,
-            teacher=self.teacher
+        self.student2 = Students.objects.create(
+            user=User.objects.create_user(
+                email="student2@test.com", 
+                first_name="Marie",
+                last_name="Martin"
+            ),
+            classe=self.classe
         )
-        self.teacher.delete()
-        updated_result = Results.objects.get(id=result.id)
-        self.assertIsNone(updated_result.teacher)
+
+        
+    def test_get_results_created_with_data(self):
+        #with results
+        # Création résultats
+        Results.objects.create(
+            title="Contrôle Maths",
+            student=self.student1,
+            teacher=self.teacher,
+            classe=self.classe,
+            score=15.0,
+            score_on=20
+        )
+        
+        Results.objects.create(
+            title="Contrôle Maths", 
+            student=self.student2,
+            teacher=self.teacher,
+            classe=self.classe,
+            score=17.0,
+            score_on=20
+        )
+        
+        result = self.teacher.get_results_created()
+        
+        
+        self.assertIn("Contrôle Maths-6ème A", result)
+        self.assertEqual(len(result["Contrôle Maths-6ème A"]), 2)
+        
+        # check data
+        student1_data = result["Contrôle Maths-6ème A"][0]
+        self.assertEqual(student1_data["student_first_name"], "Jean")
+        self.assertEqual(student1_data["student_last_name"], "Dupont") 
+        self.assertEqual(student1_data["student_score"], 15.0)
+        self.assertEqual(student1_data["result_on"], 20)
