@@ -7,12 +7,14 @@ from .serializers import ClassesSerializer, SubjectsSerializer
 from django.views.decorators.csrf import csrf_protect
 
 @api_view(['GET']) #get all classes names
+@csrf_protect
 def get_all_classes(request):
     all_classes = Classes.objects.all()
     return Response(ClassesSerializer(all_classes, many=True).data)
 
 
 @api_view(['GET']) #get all subjects names
+@csrf_protect
 def get_all_subjects(request):
     all_classes = Subjects.objects.all()
     return Response(SubjectsSerializer(all_classes, many=True).data)

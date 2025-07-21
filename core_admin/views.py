@@ -15,6 +15,11 @@ from django.urls import reverse
 env = environ.Env()
 
 
+def is_injection_sql(valeur):
+    patterns_suspects = [">", "<","--", ";", "/*", "*/", "@@", "@", "char(", "nchar(", "varchar(", "alter", "drop", "insert", "delete", "update", "select", "union"]
+    valeur_lower = valeur.lower()
+    return any(p in valeur_lower for p in patterns_suspects)
+
 @staff_member_required #only for admin
 def admin_action_view(request):
 
@@ -25,13 +30,33 @@ def admin_action_view(request):
 
             excel_file = request.FILES['fichier'] #get file
             df = pd.read_excel(excel_file) #make it a pandas dataframe
+            model_columns = ['last_name','first_name','email','is_student','is_teacher','subject','classes']
+            same_columns = [col in model_columns for col in df.columns]
+
+            if False in same_columns:
+                form = ExcelUploadForm()        
+                messages.error(request, "Les colonnes ne sont pas au bon format !") #interface message
+                return render(request, "admin/msd_admin_action.html", {"form": form})
 
             for index, row in df.iterrows(): #iter over each row
                 
                 #check if value exist
                 if row["is_student"] == "" or row["is_teacher"] == "" or row["first_name"] == "" or row['last_name'] == "":
                     continue
-
+                #check if value suspect (injection SQL)
+                if( is_injection_sql(row["is_student"]) or 
+                    is_injection_sql(row["is_teacher"]) or 
+                    is_injection_sql(row["first_name"]) or 
+                    is_injection_sql(row["last_name"]) or 
+                    is_injection_sql(row["is_student"]) or 
+                    is_injection_sql(row["classes"]) or 
+                    is_injection_sql(row["is_teacher"]) or
+                    is_injection_sql(row["subject"])
+                    ):
+                    form = ExcelUploadForm()        
+                    messages.error(request, "Valeurs suspect - Injection SQL  !")
+                    return render(request, "admin/msd_admin_action.html", {"form": form})
+                    
                  #create credentials
                 new_email =f"{row["first_name"]}_{row['last_name'][:3]}{random.randint(0, 100)}@eme.com"
                 new_email = new_email.lower() 

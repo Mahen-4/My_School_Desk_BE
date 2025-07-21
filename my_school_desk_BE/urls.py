@@ -19,14 +19,11 @@ from django.urls import path, include
 from core_admin.views import admin_action_view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('creation-admin-action/', admin_action_view, name='msd-admin-action'),
-    path('test-admin-action/', admin_action_view),
-    path('auth/', include(("custom_auth.urls", "custom_auth"), "custom_auth")),
-    path('',include(("school.urls", "school"), "school")),
-    path('',include(("works.urls", "works"), "works")),
-    path('',include(("grades.urls", "grades"), "grades")),
-    path('',include(("quiz.urls", "quiz"), "quiz")),
-    
-    
+    path('api/admin/', admin.site.urls),
+    path('api/admin/creation-admin-action/', admin_action_view, name='msd-admin-action'),
+    path('api/auth/', include(("custom_auth.urls", "custom_auth"), "custom_auth")),
+    path('api/school/',include(("school.urls", "school"), "school")),
+    path('api/homeworks/',include(("works.urls", "works"), "works")),
+    path('api/results/',include(("grades.urls", "grades"), "grades")),
+    path('api/quiz/',include(("quiz.urls", "quiz"), "quiz")),
 ]
