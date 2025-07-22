@@ -17,6 +17,7 @@ from .serializers import UserSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.password_validation import validate_password
 
 #load env variables
 env = environ.Env()
@@ -31,7 +32,6 @@ def get_csrf(request):
 @api_view(['POST'])    
 @csrf_protect
 def logIn(request):
-
     try:
         data = request.data #get data from front
         email = data.get("email")
@@ -48,7 +48,7 @@ def logIn(request):
             random_digit_code = random.randint(100000, 999999) 
             request.session[f"digi_code{user.email}"] = make_password(str(random_digit_code)) #hash number 
             request.session[f"digi_code_expire{user.email}"] = str(datetime.datetime.now() +  datetime.timedelta(minutes=5)) # add 5 minute from now datetime
-            
+
             #sending email
             subject = "MySchoolDesk - Votre code d'authentification à deux facteurs (2FA)"
             message = f"""Hi {user.first_name},
@@ -63,6 +63,7 @@ def logIn(request):
 
             return JsonResponse({"success": "Authentification réussi"}, status=200)
         else:
+
             return JsonResponse({"error": "Utilisateur introuvable"}, status=404)
     
     except Exception as e:
@@ -198,6 +199,12 @@ def change_password(request):
     # get user linked to token
     user1 = token_obj.user 
     new_password = data.get('password')
+    #check password strength
+    try:
+        validate_password(new_password)
+    except Exception as e:
+         return JsonResponse({'error': f'Mot de passe pas assez sécurisé : {e.message}'}, status=400)
+    
     if new_password:
         user1.set_password(new_password)  # hash password
         user1.save()

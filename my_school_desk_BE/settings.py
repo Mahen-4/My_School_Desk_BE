@@ -32,9 +32,8 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -69,11 +68,12 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080"  # ton frontend React
+    "http://localhost:8080"  
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
 ]
+#ALLOWED_HOSTS = ['msd-backend-django-dsa6gcg6cffsfead.francecentral-01.azurewebsites.net']
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -104,13 +104,15 @@ WSGI_APPLICATION = 'my_school_desk_BE.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'msd_db',
+        'NAME': env('DB_NAME'),
         'USER': env('DB_USER'),
         'PASSWORD': env("DB_PASSWORD"),
         'HOST': env("DB_HOST"),
-        'PORT': '5432'
+        'PORT': '5432',
+        
     }
 }
+
 
 # use sql lite for test only
 if 'test' in sys.argv or 'test_coverage' in sys.argv:
@@ -121,7 +123,7 @@ if 'test' in sys.argv or 'test_coverage' in sys.argv:
 
 
 #GOOGLE SMTP Connexion
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
@@ -138,6 +140,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 12,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',

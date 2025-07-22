@@ -143,7 +143,9 @@ class TestGetHomeworksCreated(TestCase):
         #create objects
         self.teacher_user = User.objects.create_user(
             email="teacher@test.com",
-            is_teacher=True
+            is_teacher=True,
+            first_name='John',
+            last_name='Teacher'
         )
         self.teacher = Teachers.objects.create(user=self.teacher_user)
         self.classe = Classes.objects.create(name="6ème A")
@@ -154,7 +156,7 @@ class TestGetHomeworksCreated(TestCase):
         
     def test_get_homeworks_created_with_data(self):
         #test with homework
-        due_date = datetime.now() + timedelta(days=7)
+        due_date = datetime.datetime.now() + timedelta(days=7)
         homework = HomeWorks.objects.create(
             description="Exercices page 42",
             due_date=due_date,

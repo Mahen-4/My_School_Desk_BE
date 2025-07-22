@@ -27,3 +27,4 @@ urlpatterns = [
     path('api/results/',include(("grades.urls", "grades"), "grades")),
     path('api/quiz/',include(("quiz.urls", "quiz"), "quiz")),
 ]
+

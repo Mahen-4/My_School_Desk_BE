@@ -230,7 +230,9 @@ class TestGetResultsCreated(TestCase):
         # create teacher object
         self.teacher_user = User.objects.create_user(
             email="teacher@test.com",
-            is_teacher=True
+            is_teacher=True,
+            first_name='John',
+            last_name='Teacher'
         )
         self.teacher = Teachers.objects.create(user=self.teacher_user)
         
